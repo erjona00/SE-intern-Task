@@ -9,6 +9,7 @@ import {
 import i18n from "i18next";
 import { useTranslation, initReactI18next } from "react-i18next";
 import InfiniteScroll from "react-infinite-scroll-component";
+import "./App.css";
 
 const client = new ApolloClient({
   uri: "https://rickandmortyapi.com/graphql",
@@ -49,7 +50,7 @@ const resources = {
       dead: "Dead",
       unknown: "Unknown",
       all: "All",
-      rickAndMorty: "Rick and Morty", 
+      rickAndMorty: "Rick and Morty",
     },
   },
   de: {
@@ -65,7 +66,7 @@ const resources = {
       dead: "Tot",
       unknown: "Unbekannt",
       all: "Alle",
-      rickAndMorty: "Rick und Morty", 
+      rickAndMorty: "Rick und Morty",
     },
   },
 };
@@ -81,7 +82,7 @@ function Characters() {
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [allCharacters, setAllCharacters] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("");  
+  const [statusFilter, setStatusFilter] = useState("");
   const [speciesFilter, setSpeciesFilter] = useState("");
   const [pendingSpecies, setPendingSpecies] = useState("");
 
@@ -93,12 +94,10 @@ function Characters() {
   useEffect(() => {
     setAllCharacters([]);
     setPage(1);
-    refetch({ page: 1, status: statusFilter, species: speciesFilter }).then(
-      (res) => {
-        const results = res.data?.characters?.results || [];
-        setAllCharacters(results);
-      }
-    );
+    refetch({ page: 1, status: statusFilter, species: speciesFilter }).then((res) => {
+      const results = res.data?.characters?.results || [];
+      setAllCharacters(results);
+    });
   }, [statusFilter, speciesFilter, refetch]);
 
   useEffect(() => {
@@ -123,92 +122,88 @@ function Characters() {
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
-      e.preventDefault(); 
-      setSpeciesFilter(pendingSpecies); 
+      e.preventDefault();
+      setSpeciesFilter(pendingSpecies);
     }
   };
 
   const handleSpeciesChange = (e) => {
-    setPendingSpecies(e.target.value); 
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault(); 
+    setPendingSpecies(e.target.value);
   };
 
   if (loading && allCharacters.length === 0) return <p>{t("loadMore")}...</p>;
   if (error) return <p>{t("loadMore")} Error loading characters 😢</p>;
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+    <div className="container">
       <h1>{t("rickAndMorty")} Characters</h1>
 
-      <div style={{ marginBottom: "20px" }}>
+      <div className="filters">
         <label>
-          {t("status")}:{" "}
-          <select 
-            onChange={(e) => setStatusFilter(e.target.value)} 
-            value={statusFilter} 
+          {t("status")}
+          <select
+            onChange={(e) => setStatusFilter(e.target.value)}
+            value={statusFilter}
           >
-            <option value="">{t("all")}</option> {}
+            <option value="">{t("all")}</option>
             <option value="Alive">{t("alive")}</option>
             <option value="Dead">{t("dead")}</option>
             <option value="Unknown">{t("unknown")}</option>
           </select>
         </label>
 
-        <label style={{ marginLeft: "20px" }}>
-          {t("species")}:{" "}
+        <label>
+          {t("species")}
           <input
             type="text"
             placeholder={t("species")}
             value={pendingSpecies}
-            onChange={handleSpeciesChange} 
-            onKeyDown={handleKeyPress} 
+            onChange={handleSpeciesChange}
+            onKeyDown={handleKeyPress}
           />
         </label>
       </div>
 
       <InfiniteScroll
-        dataLength={allCharacters.length} 
-        next={loadMore} 
-        hasMore={data?.characters?.info?.next} 
-        loader={<h4>{t("loadMore")}...</h4>} 
-        endMessage={<p>{t("loadMore")} - No more characters available</p>} 
+        dataLength={allCharacters.length}
+        next={loadMore}
+        hasMore={!!data?.characters?.info?.next}
+        loader={<h4>{t("loadMore")}...</h4>}
+        endMessage={
+          <p style={{ textAlign: "center" }}>
+            {t("loadMore")} - No more characters
+          </p>
+        }
       >
-        <table border="1" cellPadding="8" style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th>{t("name")}</th>
-              <th>{t("status")}</th>
-              <th>{t("species")}</th>
-              <th>{t("gender")}</th>
-              <th>{t("origin")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {allCharacters.map((char) => (
-              <tr key={char.id}>
-                <td>{char.name}</td>
-                <td>{t(char.status.toLowerCase())}</td> {}
-                <td>{char.species}</td>
-                <td>{char.gender}</td>
-                <td>{char.origin.name}</td>
+        <div className="table-container">
+          <table className="character-table">
+            <thead>
+              <tr>
+                <th>{t("name")}</th>
+                <th>{t("status")}</th>
+                <th>{t("species")}</th>
+                <th>{t("gender")}</th>
+                <th>{t("origin")}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {allCharacters.map((char) => (
+                <tr key={char.id}>
+                  <td>{char.name}</td>
+                  <td>{t(char.status.toLowerCase())}</td>
+                  <td>{char.species}</td>
+                  <td>{char.gender}</td>
+                  <td>{char.origin.name}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </InfiniteScroll>
 
-      {}
-      <footer style={{ marginTop: "20px", textAlign: "center" }}>
+      <footer>
         <button onClick={() => i18n.changeLanguage("en")}>English</button>
-        <button
-          onClick={() => i18n.changeLanguage("de")}
-          style={{ marginLeft: "10px" }}
-        >
-          Deutsch
-        </button>
+        <button onClick={() => i18n.changeLanguage("de")}>Deutsch</button>
       </footer>
     </div>
   );
